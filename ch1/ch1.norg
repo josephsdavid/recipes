@@ -204,6 +204,58 @@
     Prerequestit
 
 * Vector and matrix objects
+  Dont use valarray
+  We will make our own
+ ** Typedefs
+    Book redefines every type of vector so we can have some standards. THis is not too important yet
+ ** Required methods
+    If we have type `NRVector<T>`:
+    @code cpp 
+    v() /*constructor, no length */
+    v(Int n) /* constructor, length n*/
+    v(Int n, const T &a) /* Initalize all elements to value a*/
+    v(Int n, const T *a) /*Constructor to values in a C-style array/list*/
+    v(const Note on Roundoff error &rhs) /*copy*/
+    v.size()
+    v.resize(Int newn)
+    v.assign(Int newn, const T &a) /* Resize to size newn, and assign all elements*/
+    v[Int i] /*subscript*/
+    v = rhs /*assign*/
+    typedef T value_type /*makes type available externaly for templates*/
+    @end
+
+    For type `NRmatrix<T>:
+    @code cpp 
+    vv() /*Constructor, zero-length vector.*/
+    vv(Int n, Int m) /*Constructor, n  m matrix.*/
+    vv(Int n, Int m, const T &a) /*Constructor, initialize all elements to the value a.*/
+    vv(Int n, Int m, const T *a) /*Constructor, initialize elements by rows to the values in a C-style array.*/
+    vv(const NRmatrix &rhs) /*Copy Constructor*/
+    vv.nrows()
+    vv.ncols()
+    vv.resize(Int newn, Int newm)
+    vv.assign(Int newn, Int newm, const t &a)
+    vv[Int i]
+    v[Int i][Int j]
+    vv = rhs
+    typedef T value_type;
+    @end
+    *Essential property*: all elements stored sequentially, accessable by pointers relative to the first one. Example:
+    @code cpp 
+    VecDoub a(100);
+    Doub *b = &a[0]
+    @end
+    Please refer to
+    {recipes/ch1/nr3.h}[source code]
+* Const correctness
+  In this book everything that is constant even if it is obvious is marked as a `Const`, which means that any function which is a const means the variable isnt modified, and ones without const do modify what is passed in. Can change data a pointer points to without modifying the pointers!
+ ** Nans
+  `static const Doub NaN = numeric_limits<Doub>::quiet_NaN();` in nr3.h
+  to check if nan you can do:
+  @code cpp 
+  if (x != x) {...} 
+  @end
+
  
 
 
