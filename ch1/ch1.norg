@@ -91,6 +91,121 @@
     Roundoffs accumulate the more  calculations you do!
     If you perform /N/ calculations, best case scenario (if roundoff is randomly up or down), you will have a total roundoff error of /√N ϵ_m/ (sqrt comes from a random walk). However, computers *and* calculations are typically going to prefer one direction over the other, which will raise the error size to the order of /Nϵ_m/. Sometimes you can really blow up the roundoff error by for example subtracting two nearly equal numbers resulting in a really small number. This is surprisingly common, for example the quadratic equation in conditions where b^2 >> ac
  ** Truncation error
+    This is error induced by programmers to make algorithms go. It is discrepancy between real solution and what is calculated in practice. This is the sort of error that we want to avoid. Truncation errors would happen on an infinite precision computer!
+
+ ** Stability
+    Sometimes, the way that seems simple and good to do can be /unstable/, meaning that if any roundoff error gets mixed in to the result, it can explode! An example of this is calculating integer powers of ϕ the golden mean, very quickly explodes to being incorrect, even if ϕ^n is only like 10^-4
+
+* C family syntax
+
+  most things are normal, but `++`, `?`, `:`, assignment, and logical stuff is right to left
+
+ ** C control structures
+    - *For loop*
+    @code c
+
+    for (j=2;j<=1000;j++) {
+      b[j]=a[j-1];
+      a[j-1]=j;
+    }
+    @end
+    - Conditional
+    @code c 
+
+    if (...) {
+      ...
+    } else if (...) {
+      ...
+    } else {
+      ...
+    }
+           
+    @end
+    Note the braces are not necessary, but they make the code more easy to evaluate by eyesight. Else corresponds to the most recent if statement if not surrounded by braces!!
+    - While
+    @code c 
+
+    while (n < 1000) {
+      n *= 2;
+      j += 1;
+    }
+     
+    @end
+    addin a do  in there means that even if conds of while loop are not initially satisfied, the code will run at least once:
+    @code c 
+    do {
+      n += 2;
+      j += 1;
+    } while (n < 1000)
+    @end
+    - break
+    @code c 
+
+    for(;;) {
+        ...
+        if (...) break;
+        ...
+    }
+    ...
+         
+    @end
+
+ ** A note on one liners
+    Dont be too tricky, dont be stupidly literal. It will make your life too hard to debug, or make it too hard to see the forest through the trees. Always write code that is /slightly less tricky/ than what you are willing to read!! Be idiomatic but not tricky!
+ ** Structs and classes
+    A struct basically is a class with all public vars and methods.
+    Uses of objects 
+    - group functions
+    - make standard interface
+    - Return multiple values by saving all useful results and let user grab what is nice
+    - Save internal state to save calculation
+
+    Use scoping to save memory, once scope is gone everything vanishes. Everything delimited by braces is a scope
+
+ ** Functions and Functors
+    Functors use magic overloading of operator() method?? Just like a function with globals aded to it?
+
+    @code cpp
+    struct Contimespow {
+      Doub c, p;
+      Contimespow(const Doub cc, const Doub pp) : c(cc), p(pp) {}
+      Doub operator()(const Doub x) { return c * pow(x, p); }
+    };
+    @end
+    And then you do:
+    `Contimespow h(4.,0.5)` and pass that on to your routine
+    - We can write routines to accept either functors or functions. A routine that accepts either function or functors uses a `template`
+    @code cpp 
+
+    template <class T> 
+    Doub someQuadrature(T &func, const Doub a, const Doub b);
+     
+    @end
+    Some conventions:
+    - *Ftor* /functor/: `Ftor ftor(...);`
+    - *Fbare* /plain function/: `Fbare fbare(...)`;
+
+    More complicated example:
+    @code cpp 
+    template <class T> 
+    struct SomeStruct { SomeStruct(T &func, ...); };
+    @end
+    We would instantion it with a functor like so:
+    @code cpp 
+    Ftor ftor;
+    SomeStruct<Ftor> s(ftor, ...);
+    SomeStruct<Doub (const Doub)> s(fbare, ...);
+    @end
+
+ ** Inheritance
+    @code cpp 
+    struct Binomialdev : Ran {}; 
+    @end
+    Prerequestit
+
+* Vector and matrix objects
+ 
+
 
 
 
