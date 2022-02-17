@@ -23,11 +23,11 @@
   @end
   Then we can represent the equation as 
   @math  
-  A  ̇ x  = b
+  A ⬝ x  = b
   @end
   Dot can be represented as:
   @math  
-  C = A  ̇ b ⟺   c_ik = ∑aijbjk
+  C = A ⬝ b ⟺   c_ik = ∑aijbjk
   @end
   In situations where M = N, we have only an ok chance of solving! Why?
 
@@ -44,7 +44,7 @@
     Most of the sophisitication of linear solvers is devoted to detecting and correcting these two issues.
  ** Tasks of Comp LA (topics in this chapter)
     With M = N:
-    - solution of equation $A  ̇ x = b$ for x
+    - solution of equation $A ⬝ x = b$ for x
     - solution of many matrix equations with A held constant for a set of vectors
     - Calculation of the inverse of A
     - calculation of determinant
@@ -57,5 +57,101 @@
     - special forms of the linear algebra problems
     - fast matrix inversion
 
- 
+* Gauss-Jordan Elimination 
+  -Otherwise known as Gaussian elimination.-
 
+  $ Basic idea
+  add or subtract linear combinations of the given equations until each equation contains only one of the unknowns, thus giving an immediate solution. Also sometimes used for calculating the inverse.
+
+  For solving linear sets of equations, gaussian jordan elimination gets both the inverse A^-1 and the solution for the right hand side vectors. Has some problems though:
+  ~ All RHS vectors b must be stored and manipulated simultaneously
+  ~ When the inverse matrix is not desired, GJ elimination is 3 times slower than anything else.
+  Strength is that it is very stable 
+
+  For inverting a matrix, GJ elimination is about as efficient as any other direct method {^ Direct method:} {^ Indirect Method}. There is no reason not to use it if you want the matrix inverse. 
+
+  Regarding  issue number 1 above, repeatedly using the inverse in a non simultaneous method could lead to an accumulation of roundoff errors.
+  Therfore, GJ elimination should not be your top choice! Why are we discussing it then?
+  > Because it is straightforward, solid, and discusses /pivoting/, which is important. 
+
+ ** Elimination on Column-Augmented matrices
+
+    | 2.1.1
+    @code whiteboard
+
+                                ┌─────                                      ─────┐
+       ┌──                ──┐   │                          ┌──                ──┐│
+       │ a00  a01  a02  a03 │   │  x00     x01     x02     │ y00  y01  y02  y03 ││
+       │ a10  a11  a12  a13 │   │  x10     x11     x12     │ y10  y11  y12  y13 ││
+       │ a20  a21  a22  a23 │ ⬝ │  x20  ⊔  x21  ⊔  x22  ⊔  │ y20  y21  y22  y23 ││
+       │ a30  a31  a32  a33 │   │  x30     x31     x32     │ y30  y31  y32  y33 ││
+       └──                ──┘   │                          └──                ──┘│
+                                └────                                        ────┘
+
+                                 ┌─────                              ─────┐ 
+                                 │                          ┌──        ──┐│ 
+                                 │  b00     b01     b02     │ 1  0  0  0 ││ 
+                                 │  b10     b11     b12     │ 0  1  0  0 ││ 
+                          =      │  b20  ⊔  b21  ⊔  b22  ⊔  │ 0  0  1  0 ││ 
+                                 │  b30     b31     b32     │ 0  0  0  1 ││ 
+                                 │                          └──        ──┘│ 
+                                 └────                                ────┘ 
+    @end                                                                                     
+    The `(⬝)` dot represents matrix mult, while the operator ⊔ represents column augmentation. That  is making a wider matrix out of the little matrices. We can write this  as:
+    @math  
+    [A] ⬝ [x_0 ⊔ x_1 ⊔ x_2 ⊔ Y] = [b_0 ⊔ b_1 ⊔ b_2 ⊔ 1]
+    @end
+    Where *A* and *Y* are square matrices, the *b_i* and *x_i* are column vectors, and *1* is the identity. It should be pretty easy to see that this simultaneously solves:
+
+    | 2.1.3
+    @math  
+
+    A ⬝x_0 = b_0    A⬝x_1 = b_1    A⬝x_2 = b_2 
+
+                          
+                  A⬝Y = 1 
+                          
+
+    @end
+
+    - It is also pretty plain that changing rows of A and the corresponding rows of B does not mess up X and Y, just reorders the equations. 
+    - Same  deal if we replace any row in a by a linear combination of itself and any other row, as long as B and 1 have the same linear combination operations. 
+    - Interchanging any two columns of A gives the same solution if the right rows x and Y.
+    GJ elimination uses these operations to reduce A to the identity matrix, therefore finding the right result
+
+ ** Pivoting
+
+  *** Gauss-Jordan Elimination without pivoting
+      ~ zeroth row devided by $a_00$, which is a linear combination of row zero and 0 times any other row (A trivial combination). 
+      ~ The right amount of the zeroth row is subtracted from all the other rows to make all the other a_io's zero. 
+      ~~ The zeroth column of A now agrees with the identity
+      ~ We move to column 1 and divide row 1 by a_11, then subtract the right amount of row 1 from rows 0, 2, and 3, to make their entries in column 1 0
+      ~ And so on
+      This method will run into trouble if it encounters a zero on the current diaganol when we do that, and it is numerically unstable in the presence of roundoff error!!! You must never do without pivoting!
+
+  *** What on earth is pivoting??
+      Just swapping rows (partial pivoting) or rows and columns(full pivoting), to make things line up right on the diagonal. Since we dont want to mess up the part of the identiy matrix we have already built, we can pivot among elements that are both 
+      ~ on rows below or one the row we want to normalize
+      ~ on columns to the right or on the column we want to eliminate
+      Partial pivot easier than full pivot, dont need to keep track of changes to the solution vector. It only makes elements alreadyy in the correct column available, while full pivoting does more, but still is a little tricky.
+      
+      > How to recognize a desirable pivot?
+      - Not fully known the very best way.
+      - Pretty good is to pick the biggest available number 
+      - Depends on original scaling of the equations
+      -- If we take the last equation and multiply it by 1 million, it will likely contribute to the first pivot, however the underlying solution is not affected by this! Therefore sometimes we choose the pivot which /would/ have been the largest if the original equations had been scaled. This is called /implicit pivoting/
+
+
+
+
+
+
+
+
+
+
+* Footnotes
+  ^ Direct method: 
+  calculates the solution in a predictable number of steps. Most common.
+  ^ Indirect Method
+  Calcualtes the solution iteratively, ideal when we want to avoid roundoff error as much as possible.
