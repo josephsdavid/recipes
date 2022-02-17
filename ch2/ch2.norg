@@ -140,6 +140,8 @@
       - Pretty good is to pick the biggest available number 
       - Depends on original scaling of the equations
       -- If we take the last equation and multiply it by 1 million, it will likely contribute to the first pivot, however the underlying solution is not affected by this! Therefore sometimes we choose the pivot which /would/ have been the largest if the original equations had been scaled. This is called /implicit pivoting/
+      The c++ code is {@ gaussj.h}[here], below we will implement the same routine in python, to practice understanding.
+
 
 
 
