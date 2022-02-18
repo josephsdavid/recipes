@@ -8,7 +8,7 @@
 @end
 
 =TOC
-
+    
 * Introduction
   Matrix representation of linear algebraic equations:
 
@@ -140,11 +140,108 @@
       - Pretty good is to pick the biggest available number 
       - Depends on original scaling of the equations
       -- If we take the last equation and multiply it by 1 million, it will likely contribute to the first pivot, however the underlying solution is not affected by this! Therefore sometimes we choose the pivot which /would/ have been the largest if the original equations had been scaled. This is called /implicit pivoting/
-      The c++ code is {@ gaussj.h}[here], below we will implement the same routine in python, to practice understanding.
+      The c++ code is {@ gaussj.h}[here].
 
 
+* Gaussian Elimination with backsubstitiution
+  This is primarily pedagogy. Somewhere between full elimination such as GJ and trianular decomposition. Gaussian elimination reducs a matrix halfway to the identity, a matrix whose components on the diagonal and above remain nontrivial.
+  - say we are doing GJ elimiination, and at each stage subtract away rows only Before the then current pivot element. We then get an upper triangular matrix, having done gaussian elimination. Now we can do some magic
+ ** backsubstitiution
+    @code whiteboard
+       ┌─                       ─┐   ┌─   ─┐     ┌─   ─┐
+       │a'00   a'01   a'02   a'03│   │  x0 │     │ b'0 │
+       │  0    a'11   a'12   a'13│ · │  x1 │  =  │ b'1 │
+       │  0      0    a'22   a'23│   │  x2 │     │ b'2 │
+       │  0      0      0    a'33│   │  x3 │     │ b'3 │
+       └─                       ─┘   └─   ─┘     └─   ─┘
+    @end
+    The primes signify that the original numerical values are not there anymore! They have been modified and divided and subtracted! We can now simply solve for the x's:
+    | Backsubstitiution
+    @math  
+    x3 = b'3/a'33 
+    ∴ x2 = (1/a'22) * (b'2 - x3*a'23)
+    ∴ xi = (1/a'ii) * (b'i - ∑_(j=i+1)^*(N-1) a'ij*xj)
+    @end
+    Just start with bottom right and move up.
+    The advantage of this is that this does fewer operations/loops. please refer to the text for an in depth discussion of this.
+
+ ** Disadvantages
+    Both Gaussian methods share the same issue that we must know all the answers on the RHS.
+
+* LU Decomposition
+
+  Suppose we were able to write the matrix *A* as a product of two matrices:
+  | Decomposition
+  @math  
+  L · U = A 
+  @end
+  Where:
+
+  - *L* /Lower triangular (only elements on and below diagonal)/
+  - *U* /Upper triangular (only elements on and above diagonal)/
+
+  @code whiteboard
+
+    ┌──                ──┐   ┌──                ──┐   ┌──                ──┐  
+    │ α00   0    0    0  │   │ β00  β10  β02  β03 │   │ a00  a01  a02  a03 │  
+    │ α10  α10   0    0  │ · │  0   β11  β12  β13 │ = │ a10  a11  a12  a13 │      
+    │ α20  α20  α20   0  │   │  0    0   β22  β23 │   │ a20  a21  a22  a23 │  
+    │ α30  α30  α30  α30 │   │  0    0    0   β33 │   │ a30  a31  a32  a33 │  
+    └──                ──┘   └──                ──┘   └──                ──┘  
 
 
+  @end
+
+  We can use a decomposition like {| Decomposition}[this one] to solve the linear set:
+
+  @math  
+  A · x = b 
+  A · x = (L · U) · x = b
+  A · x = (L · U) · x  = L · (U · X) = b
+  @end
+  by solving for the vector y such that:
+
+  | 2.3.4
+  @math  
+  L · y = b 
+  @end
+  and then solving
+  | 2.3.5
+  @math  
+  U · x = y 
+  @end
+
+  If we break them into two little sub linear sets really helps us out. We saw in {| Backsubstitiution}[that we can easily solve an upper triangular system]. 
+  We can first solve {| 2.3.4} as:
+  @math  
+              y0 = b0 / α00 
+  
+                 i-1
+        1  ┌─     ⎲        ─┐
+  yi =  ―  │ bi - ⎳ αij · yj│ i = 1,2,...,N-1
+       αii │     j=0        │
+           └─              ─┘
+
+
+  @end
+  Then we can solve {| 2.3.5} as:
+  @math  
+                     y(N-1)
+          x(N-1) = ――――――――――
+                   β(N-1, N-1)
+  
+                 N-1
+        1  ┌─     ⎲        ─┐
+  xi =  ―  │ yi - ⎳ βij · xj│ i = N-2, N-3....0
+       βii │     j=i+1      │
+           └─              ─┘
+
+
+  @end
+
+  *** Time complexity
+      These two equations have N^2 executions of an inner loop containing one multiply and one add.
+      If we have N right hand sides that are column vectors (like if we are inverting) then we have $1/6 N^3$ for y and $1/2 N^3$ for x. A distinct advantage of this is we can solve for as many right hand sides as we want
 
 
 
